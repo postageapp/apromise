@@ -12,4 +12,5 @@
 
 .DS_Store
 *.swp
+*.gem
 /.vscode
