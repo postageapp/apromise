@@ -79,6 +79,24 @@ end
 
 In this case calling `wait` returns the value immediately.
 
+It's also possible to create a promise that comes pre-resolved as this might
+prove useful in situations where the response from a call must be a promise:
+
+```ruby
+Async do
+  promise = APromise.new(value: :example)
+
+  Async do
+    value = promise.wait
+  end
+end
+```
+
+In this case no actual waiting is performed, the value is just returned.
+
+The `new` method also takes a block like `resolve` and will capture and
+re-raise exceptions accordingly.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

@@ -5,6 +5,7 @@ class APromise < Async::Condition
   # == Constants ============================================================
   
   VERSION = File.readlines(File.expand_path('../VERSION', __dir__)).first.chomp.freeze
+  NOT_SPECIFIED = Object.new
 
   # == Extensions ===========================================================
   
@@ -18,11 +19,31 @@ class APromise < Async::Condition
   
   # == Instance Methods =====================================================
 
+  def initialize(value: NOT_SPECIFIED)
+    if (block_given?)
+      begin
+        @value = yield
+      rescue Exception => e
+        @value = e
+      end
+    elsif (value === NOT_SPECIFIED)
+      # Do nothing
+    else
+      @value = value
+    end
+
+    super()
+  end
+
   def waiting?
     @waiting.any?
   end
+
+  def resolved?
+    defined?(@value)
+  end
   
-  def resolve(value: nil, task: nil, &block)
+  def resolve(value: nil, task: nil)
     @value = value
 
     if (block_given?)
