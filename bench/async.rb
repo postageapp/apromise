@@ -24,5 +24,21 @@ Async do |task|
         end
       end
     end
+
+    bm.report(:fiber_inert) do
+      count.times do
+        Fiber.new do
+          :test
+        end
+      end
+    end
+
+    bm.report(:fiber_resume) do
+      count.times do
+        Fiber.new do
+          :test
+        end.resume
+      end
+    end
   end
 end
