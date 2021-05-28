@@ -253,7 +253,7 @@ RSpec.describe APromise, type: :reactor do
   end
 
   context 'can be defined' do
-    it 'when previously resolved with a value' do
+    it 'then later resolved with a value' do
       promise = APromise.new
       result = nil
       resolved = false
@@ -273,7 +273,35 @@ RSpec.describe APromise, type: :reactor do
       expect(task).to be_complete
     end
 
-    it 'when previously resolved with a block' do
+    # FUTURE: Consider adding support for chaining on value
+    # it 'then later resolved with a value that is a promise' do
+    #   promise = APromise.new
+    #   result = nil
+    #   resolved = false
+
+    #   expect(result).to eq(nil)
+    #   expect(promise).to_not be_waiting
+
+    #   trigger = APromise.new
+
+    #   promise.resolve(trigger)
+
+    #   task = Async do
+    #     result = promise.wait
+    #     resolved = true
+    #   end
+
+    #   expect(resolved).to be(false)
+    #   expect(task).to_not be_complete
+
+    #   trigger.resolve('test')
+
+    #   expect(resolved).to be(true)
+    #   expect(result).to eq('test')
+    #   expect(task).to be_complete
+    # end
+
+    it 'then later resolved with a block' do
       promise = APromise.new
       result = nil
       resolved = false
@@ -294,7 +322,6 @@ RSpec.describe APromise, type: :reactor do
       expect(result).to eq('test')
       expect(task).to be_complete
     end
-
 
     it 'when previously generated an exception' do
       promise = APromise.new
