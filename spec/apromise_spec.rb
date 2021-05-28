@@ -13,7 +13,7 @@ RSpec.describe APromise, type: :reactor do
       expect(result).to eq(nil)
       expect(promise).to be_waiting
 
-      promise.resolve(value: 'test')
+      promise.resolve('test')
 
       expect(resolved).to be(true)
       expect(result).to eq('test')
@@ -38,10 +38,68 @@ RSpec.describe APromise, type: :reactor do
         'test'
       end
 
+      expect(promise).to be_resolved
+      expect(task).to be_complete
+
       expect(resolved).to be(true)
       expect(result).to eq('test')
-      expect(task).to be_complete
+    end
+
+    it 'with a block that involves waiting' do
+      promise = APromise.new
+
+      expect(promise).to_not be_resolved
+
+      condition = Async::Condition.new
+
+      promise.resolve do
+        condition.wait
+      end
+
+      expect(promise).to_not be_resolved
+
+      condition.signal(:test)
+
       expect(promise).to be_resolved
+      expect(promise.wait).to eq(:test)
+    end
+
+    it 'with a block that chains to another promise' do
+      promise = APromise.new
+
+      expect(promise).to_not be_resolved
+
+      trigger = APromise.new
+
+      promise.resolve do
+        trigger
+      end
+
+      expect(promise).to_not be_resolved
+
+      trigger.resolve(:test)
+
+      expect(promise).to be_resolved
+      expect(promise.wait).to eq(:test)
+    end
+
+    it 'with a block that implicitly waits on a condition' do
+      promise = APromise.new
+
+      expect(promise).to_not be_resolved
+
+      trigger = Async::Condition.new
+
+      promise.resolve do
+        trigger
+      end
+
+      expect(promise).to_not be_resolved
+
+      trigger.signal(:test)
+
+      expect(promise).to be_resolved
+      expect(promise.wait).to eq(:test)
     end
 
     it 'generating an exception' do
@@ -69,15 +127,17 @@ RSpec.describe APromise, type: :reactor do
 
       expect(resolved).to be(true)
       expect(promise).to be_resolved
+      expect(promise).to be_exception
+
       expect(result).to be_kind_of(RuntimeError)
       expect(result.to_s).to eq('test')
       expect(task).to be_complete
     end
   end
 
-  context 'can be created with an existing value' do
-    it 'passed as value argument' do
-      promise = APromise.new(value: :test)
+  context 'can be created using new' do
+    it 'passing a value as an argument' do
+      promise = APromise.new(:test)
       result = nil
       resolved = false
 
@@ -96,7 +156,7 @@ RSpec.describe APromise, type: :reactor do
       expect(task).to be_complete
     end
 
-    it 'passed as block argument' do
+    it 'passing a block argument' do
       promise = APromise.new do
         :test
       end
@@ -118,14 +178,14 @@ RSpec.describe APromise, type: :reactor do
       expect(task).to be_complete
     end
 
-    it 'passed as block argument that generates an exception' do
+    it 'passing a block argument that generates an exception' do
       promise = APromise.new do
         raise 'test'
       end
 
       expect(promise).to_not be_waiting
       expect(promise).to be_resolved
-      
+
       result = nil
       resolved = false
 
@@ -145,9 +205,54 @@ RSpec.describe APromise, type: :reactor do
       expect(result.to_s).to eq('test')
       expect(task).to be_complete
     end
+
+    it 'passing a block argument that involves waiting' do
+      condition = Async::Condition.new
+
+      promise = APromise.new do
+        condition.wait
+      end
+
+      expect(promise).to_not be_resolved
+
+      condition.signal(:test)
+
+      expect(promise).to be_resolved
+      expect(promise.wait).to eq(:test)
+    end
+
+    it 'passing a block argument that chains to another promise' do
+      trigger = APromise.new
+
+      promise = APromise.new do
+        trigger
+      end
+
+      expect(promise).to_not be_resolved
+
+      trigger.resolve(:test)
+
+      expect(promise).to be_resolved
+      expect(promise.wait).to eq(:test)
+    end
+
+    it 'passing a block argument that implicitly waits on a condition' do
+      trigger = Async::Condition.new
+
+      promise = APromise.new do
+        trigger
+      end
+
+      expect(promise).to_not be_resolved
+
+      trigger.signal(:test)
+
+      expect(promise).to be_resolved
+      expect(promise.wait).to eq(:test)
+    end
   end
 
-  context 'will return the value produced' do
+  context 'can be defined' do
     it 'when previously resolved with a value' do
       promise = APromise.new
       result = nil
@@ -156,7 +261,7 @@ RSpec.describe APromise, type: :reactor do
       expect(result).to eq(nil)
       expect(promise).to_not be_waiting
 
-      promise.resolve(value: 'test')
+      promise.resolve('test')
 
       task = Async do
         result = promise.wait
