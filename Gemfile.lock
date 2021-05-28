@@ -38,6 +38,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
     rspec-support (3.10.2)
+    stackprof (0.2.17)
     timers (4.3.3)
 
 PLATFORMS
@@ -48,6 +49,7 @@ DEPENDENCIES
   async-rspec
   rake (~> 12.0)
   rspec (~> 3.0)
+  stackprof
 
 BUNDLED WITH
    2.2.16
